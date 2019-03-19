@@ -1,5 +1,6 @@
 #include <cairo.h>
 #include <gtk/gtk.h>
+#include <math.h>
 
 static void do_drawing(cairo_t *);
 
@@ -21,9 +22,15 @@ static gboolean on_draw_event(GtkWidget *widget,
 }
 
 
+static float rgb(float x) {
+	x = x/255;
+	float value = (int)(x * 100 + .5);
+	return (float)value / 100;
+}
+
 static void do_drawing(cairo_t *cr) {
 	// sets source to pink
-	cairo_set_source_rgb(cr, .94, .24, .95);
+	cairo_set_source_rgb(cr, rgb(47), rgb(130), rgb(28));
 	cairo_set_line_width(cr, 5);
 
 	//for each clicked coordinate in glob.coord, draws a rectangle at that point
