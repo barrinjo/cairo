@@ -1,62 +1,40 @@
 #include <cairo.h>
 #include <gtk/gtk.h>
+#include <math.h>
 
-static void do_drawing(cairo_t *);
+static void do_drawing(cairo_t *, GtkWidget *);
 
-struct {
-	int count;
-	double coordx[100];
-	double coordy[100];
-} glob;
-
-static gboolean on_draw_event(GtkWidget *widget,
-			      cairo_t   *cr,
-			      gpointer   user_data)
+static gboolean
+on_draw_event(GtkWidget *widget, cairo_t *cr, gpointer user_data)
 {
-	do_drawing(cr);
+	do_drawing(cr, widget);
 
 	return FALSE;
 }
 
-static void do_drawing(cairo_t *cr)
+static void
+do_drawing(cairo_t *cr, GtkWidget *widget)
 {
-	cairo_set_source_rgb(cr, 0, 0, 0);
-	cairo_set_line_width(cr, 2.0);
+	GtkWidget *win = gtk_widget_get_toplevel(widget);
 
-	int i, j;
-	for(i = 0; i <= glob.count - 1; i++) {
-		for(j = 0; j <= glob.count - 1; j++) {
-			cairo_move_to(cr, glob.coordx[i], glob.coordy[i]);
-			cairo_line_to(cr, glob.coordx[j], glob.coordy[j]);
-		}
-	}
+	int width, height;
+	gtk_window_get_size(GTK_WINDOW(win), &width, &height);
 
-	glob.count = 0;
-	cairo_stroke(cr);
-}
+	cairo_set_line_width(cr, 9);
+	cairo_set_source_rgb(cr, 0.69, 0.19, 0);
 
-static gboolean clicked(GtkWidget *widget,
-			GdkEventButton *event,
-			gpointer user_data)
-{
-	if(event->button == 1) {
-		glob.coordx[glob.count] = event->x;
-		glob.coordy[glob.count++] = event->y;
-	}
+	cairo_translate(cr, width/2, height/2);
+	cairo_arc(cr, 0, 0, 50, 0, 2 * M_PI);
+	cairo_stroke_preserve(cr);
 
-	if(event->button == 3) {
-		gtk_widget_queue_draw(widget);
-	}
-
-	return TRUE;
+	cairo_set_source_rgb(cr, 0.3, 0.4, 0.6);
+	cairo_fill(cr);
 }
 
 int main(int argc, char const *argv[])
 {
 	GtkWidget *window;
 	GtkWidget *darea;
-
-	glob.count = 0;
 
 	gtk_init(&argc, &argv);
 
@@ -69,9 +47,6 @@ int main(int argc, char const *argv[])
 			 G_CALLBACK(on_draw_event), NULL);
 	g_signal_connect(window, "destroy",
 			 G_CALLBACK(gtk_main_quit), NULL);
-
-	g_signal_connect(window, "button-press-event",
-			 G_CALLBACK(clicked), NULL);
 
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 	gtk_window_set_default_size(GTK_WINDOW(window), 400, 90);
